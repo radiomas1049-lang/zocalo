@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Zócalo TV</title>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root{
+            --bg:#020617;
+            --card:#020617cc;
+            --border:rgba(255,255,255,.08);
+            --accent:#ff2b2b;
+            --accent2:#ff9a9a;
+            --text:#ffffff;
+            --muted:#a1a1aa;
+        }
+
+        *{
+            box-sizing:border-box;
+        }
+
+        body{
+            margin:0;
+            background:radial-gradient(circle at top, #111827, #020617 60%);
+            color:var(--text);
+            font-family:'Montserrat', sans-serif;
+        }
+
+        /* ===== CONTENEDOR ===== */
+        .container{
+            max-width:1000px;
+            margin:50px auto;
+            padding:40px;
+            background:var(--card);
+            border:1px solid var(--border);
+            border-radius:18px;
+            backdrop-filter:blur(14px);
+            box-shadow:0 30px 80px rgba(0,0,0,.6);
+        }
+
+        /* ===== TITULO ===== */
+        h1{
+            font-size:38px;
+            margin-bottom:35px;
+            display:flex;
+            align-items:center;
+            gap:14px;
+        }
+
+        h1 span{
+            background:linear-gradient(90deg,var(--accent),var(--accent2));
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        /* ===== GRUPOS ===== */
+        .group{
+            margin-bottom:26px;
+        }
+
+        label{
+            display:block;
+            font-size:15px;
+            font-weight:600;
+            margin-bottom:8px;
+            color:var(--muted);
+            letter-spacing:.4px;
+        }
+
+        input,
+        textarea{
+            width:100%;
+            padding:16px 18px;
+            font-size:18px;
+            border-radius:14px;
+            border:1px solid var(--border);
+            background:#020617;
+            color:white;
+            outline:none;
+            transition:.3s;
+        }
+
+        textarea{
+            height:90px;
+            resize:none;
+        }
+
+        input:focus,
+        textarea:focus{
+            border-color:var(--accent);
+            box-shadow:0 0 0 2px rgba(255,43,43,.25);
+        }
+
+        /* ===== SWITCHES ===== */
+        .switches{
+            display:flex;
+            gap:40px;
+            margin-top:20px;
+            flex-wrap:wrap;
+        }
+
+        .switch{
+            display:flex;
+            align-items:center;
+            gap:14px;
+            font-size:16px;
+            color:var(--muted);
+        }
+
+        .switch input{
+            display:none;
+        }
+
+        .slider{
+            width:52px;
+            height:28px;
+            background:#111;
+            border-radius:50px;
+            position:relative;
+            cursor:pointer;
+            border:1px solid var(--border);
+            transition:.3s;
+        }
+
+        .slider::before{
+            content:"";
+            width:22px;
+            height:22px;
+            background:#fff;
+            border-radius:50%;
+            position:absolute;
+            top:2px;
+            left:3px;
+            transition:.3s;
+        }
+
+        .switch input:checked + .slider{
+            background:linear-gradient(90deg,var(--accent),var(--accent2));
+        }
+
+        .switch input:checked + .slider::before{
+            transform:translateX(22px);
+        }
+
+        /* ===== BOTON ===== */
+        button{
+            margin-top:35px;
+            width:100%;
+            padding:18px;
+            font-size:20px;
+            font-weight:800;
+            letter-spacing:.8px;
+            background:linear-gradient(90deg,var(--accent),var(--accent2));
+            border:none;
+            border-radius:16px;
+            color:white;
+            cursor:pointer;
+            transition:.3s;
+            box-shadow:0 15px 40px rgba(255,43,43,.35);
+        }
+
+        button:hover{
+            transform:translateY(-2px);
+            box-shadow:0 20px 60px rgba(255,43,43,.55);
+        }
+
+        button:active{
+            transform:scale(.98);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>🎛 <span>Panel Zócalo TV</span></h1>
+
+        <div class="group">
+            <label>TÍTULO SUPERIOR</label>
+            <input id="subtitle" placeholder="Ej: Último Momento">
+        </div>
+
+        <div class="group">
+            <label>TÍTULO PRINCIPAL</label>
+            <textarea id="title" placeholder="Escribí el titular principal..."></textarea>
+        </div>
+
+        <div class="group">
+            <label>TICKER INFERIOR</label>
+            <textarea id="ticker" placeholder="Texto en movimiento..."></textarea>
+        </div>
+
+        <div class="group">
+            <label>🌤 TEMPERATURA</label>
+            <input id="temp" value="25">
+        </div>
+
+        <div class="switches">
+            <label class="switch">
+                <input type="checkbox" id="showSubtitle" checked>
+                <div class="slider"></div>
+                Mostrar título superior
+            </label>
+
+            <label class="switch">
+                <input type="checkbox" id="showTitle" checked>
+                <div class="slider"></div>
+                Mostrar título principal
+            </label>
+        </div>
+
+        <button onclick="send()">ACTUALIZAR ZÓCALO</button>
+    </div>
+
+    <script>
+        const s = io();
+
+        function send(){
+            s.emit("subtitle", subtitle.value);
+            s.emit("title", title.value);
+            s.emit("ticker", ticker.value);
+            s.emit("temp", temp.value);
+            s.emit("toggleSubtitle", showSubtitle.checked);
+            s.emit("toggleTitle", showTitle.checked);
+        }
+    </script>
+</body>
+</html>

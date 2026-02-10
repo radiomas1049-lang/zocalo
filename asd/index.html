@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Zócalo TV Pro - Radio + 104.9</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="/socket.io/socket.io.js"></script>
+
+<style>
+:root{
+    --naranja:#ff0000;
+    --titleColor:#ffffff;
+}
+
+body{
+    margin:0;
+    background:transparent;
+    font-family:'Montserrat',sans-serif;
+    overflow:hidden;
+}
+
+.wrapper{
+    position:absolute;
+    bottom:0;
+    width:100%;
+}
+
+.animate{
+    transition:.6s cubic-bezier(.4,0,.2,1);
+}
+
+.hidden{
+    opacity:0;
+    transform:translateY(35px);
+}
+
+/* ───── LABEL ───── */
+.label{
+    background:#fff;
+    color:#000;
+    font-size:38px;
+    font-weight:800;
+    padding:12px 65px;
+    margin-left:80px;
+    display:inline-block;
+    clip-path:polygon(5% 0,100% 0,95% 100%,0 100%);
+    z-index:10;
+}
+
+/* ───── MAIN ───── */
+.main{
+    height:170px;
+    display:flex;
+    align-items:center;
+    background:var(--naranja);
+    padding:0 90px;
+    margin-top:-4px;
+    overflow:hidden;
+}
+
+.main span{
+    font-weight:800;
+    color:var(--titleColor);
+    text-transform:uppercase;
+    text-shadow:4px 4px 14px rgba(0,0,0,.25);
+    letter-spacing:-3px;
+    line-height:1;
+    white-space:nowrap;
+}
+
+/* ───── BOTTOM ───── */
+.bottom{
+    height:95px;
+    background:#111;
+    display:flex;
+    align-items:center;
+    color:#fff;
+}
+
+/* ───── BRAND ───── */
+.brand{
+    height:100%;
+    background:#000;
+    display:flex;
+    align-items:center;
+    padding:0 85px 0 40px;
+    font-weight:800;
+    font-size:34px;
+    clip-path:polygon(0 0,88% 0,100% 100%,0 100%);
+}
+
+/* ───── TICKER ───── */
+.ticker-wrap{
+    flex:1;
+    height:100%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+}
+
+.ticker{
+    white-space:nowrap;
+    padding-left:100%;
+    animation:scroll 26s linear infinite;
+    font-weight:700;
+    font-size:32px;
+}
+
+@keyframes scroll{
+    from{transform:translateX(0)}
+    to{transform:translateX(-100%)}
+}
+
+/* ───── RIGHT INFO ───── */
+.right{
+    height:100%;
+    display:flex;
+    align-items:center;
+    gap:26px;
+    padding:0 35px;
+    background:#000;
+    border-left:6px solid var(--naranja);
+}
+
+/* ───── INFO ───── */
+.info-box{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.icon{
+    font-size:22px;
+    opacity:.75;
+}
+
+.value{
+    font-size:36px;
+    font-weight:800;
+}
+
+.unit{
+    font-size:22px;
+    opacity:.75;
+}
+
+.clock{
+    font-size:34px;
+    font-weight:700;
+}
+
+.sep{
+    width:1px;
+    height:55%;
+    background:rgba(255,255,255,.25);
+}
+
+
+/* ───── WHATSAPP BOX (ARRIBA DEL ROJO) ───── */
+.whatsapp-box{
+    position:absolute;
+    right:10px;
+    top:-17px; /* SUBE por arriba del rojo */
+
+    height:80px;
+    display:flex;
+    align-items:center;
+    gap:16px;
+
+    background:#000;
+    color:#fff;
+
+    padding:0 26px;
+    border-radius:16px;
+
+    font-weight:800;
+    font-size:26px; /* TEXTO MÁS GRANDE */
+
+    box-shadow:0 10px 30px rgba(0,0,0,.6);
+    z-index:20;
+}
+
+.whatsapp-box i{
+    font-size:34px; /* ÍCONO MÁS GRANDE */
+    color:#25D366;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="wrapper">
+
+    <div class="label animate" id="subtitle">JUAN DOE</div>
+
+    <div class="main animate" id="main">
+        <span id="title">NO SOMOS NEUTRALES CON MOISES SOLORZA</span>
+    </div>
+
+    <div class="bottom">
+
+        <div class="brand">
+            <span id="brandText">Radio + 104.9</span>
+        </div>
+
+        <div class="ticker-wrap">
+            <div class="ticker" id="ticker">
+                | 🔥 ÚLTIMO MOMENTO |
+            </div>
+        </div>
+
+        <div class="right">
+
+            <div class="info-box">
+                <span class="icon">☀️</span>
+                <span class="value" id="temp">25</span>
+                <span class="unit">°C</span>
+            </div>
+
+            <div class="sep"></div>
+
+            <div class="info-box">
+                <span class="icon">🕒</span>
+                <span class="clock" id="clock">--:--</span>
+            </div>
+
+        </div>
+
+        <!-- WHATSAPP -->
+        <div class="whatsapp-box">
+            <i class="fab fa-whatsapp"></i>
+            <span>+54 9 2964 555-666</span>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function updateClock(){
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const argentina = new Date(utc - 3 * 60 * 60 * 1000);
+
+    clock.innerText =
+        argentina.getHours().toString().padStart(2,"0") + ":" +
+        argentina.getMinutes().toString().padStart(2,"0");
+}
+updateClock();
+setInterval(updateClock,1000);
+
+const s = io();
+
+s.on("subtitle", d => subtitle.innerText = d);
+s.on("ticker", d => ticker.innerText = d);
+s.on("temp", d => temp.innerText = d);
+s.on("brandText", d => brandText.innerText = d);
+
+s.on("toggleSubtitle", v => subtitle.classList.toggle("hidden", !v));
+s.on("toggleTitle", v => main.classList.toggle("hidden", !v));
+
+s.on("titleColor", c => {
+    document.documentElement.style.setProperty("--titleColor", c);
+});
+
+const titleEl = document.getElementById("title");
+const mainEl  = document.getElementById("main");
+
+function autoResizeTitle(){
+    let size = 120;
+    titleEl.style.fontSize = size + "px";
+
+    const styles = getComputedStyle(mainEl);
+    const padding =
+        parseFloat(styles.paddingLeft) +
+        parseFloat(styles.paddingRight);
+
+    const maxWidth = mainEl.clientWidth - padding;
+
+    while(titleEl.scrollWidth > maxWidth){
+        size--;
+        titleEl.style.fontSize = size + "px";
+    }
+}
+
+s.on("title", d => {
+    titleEl.innerText = d;
+    setTimeout(autoResizeTitle, 10);
+});
+
+window.addEventListener("load", autoResizeTitle);
+window.addEventListener("resize", autoResizeTitle);
+</script>
+
+</body>
+</html>
